@@ -1,4 +1,3 @@
-use crate::scripts::download_files::download_files;
 use explode;
 
 pub fn decompress(file: &Vec<u8>) -> Vec<u8> {
