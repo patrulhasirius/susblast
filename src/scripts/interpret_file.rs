@@ -1,8 +1,13 @@
-use std::{fs::File, io::Write};
+use std::{
+    fs::File,
+    io::{BufReader, Write},
+};
 
-pub fn interpret_file(file: Vec<u8>) -> Vec<dbase::Record> {
+use dbase::Reader;
+
+pub fn interpret_file(file: Vec<u8>) -> Reader<BufReader<File>> {
     let mut saved_file = File::create("./test_files/test.dbf").unwrap();
     saved_file.write_all(&file).expect("problem creeating file");
 
-    dbase::read("./test_files/test.dbf").expect("problem reading file")
+    dbase::Reader::from_path("./test_files/test.dbf").expect("error reading dbf")
 }
