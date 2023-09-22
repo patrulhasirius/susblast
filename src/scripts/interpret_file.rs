@@ -6,8 +6,9 @@ use std::{
 use dbase::Reader;
 
 pub fn interpret_file(file: Vec<u8>) -> Reader<BufReader<File>> {
-    let mut saved_file = File::create("./test_files/test.dbf").unwrap();
+    let path = "./test_files/test.dbf";
+    let mut saved_file = File::create(path).unwrap();
     saved_file.write_all(&file).expect("problem creeating file");
 
-    dbase::Reader::from_path("./test_files/test.dbf").expect("error reading dbf")
+    dbase::Reader::from_path(path).expect("error reading dbf")
 }
