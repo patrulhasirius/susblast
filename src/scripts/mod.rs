@@ -4,40 +4,32 @@ mod interpret_file;
 
 use dbase::FieldValue;
 use decompress::decompress;
-use download_files::download_files;
+use download_files::download_file;
 use interpret_file::interpret_file;
 
-pub fn get_files(_years: Vec<u8>, _months: Vec<u8>) {
-    let variables = vec![
-        "PA_CODUNI",
-        "PA_CBOCOD",
-        "PA_MUNPCN",
-        "PA_MVM",
-        "PA_CMP",
-        "PA_PROC_ID",
-        "PA_NIVCPL",
-        "PA_OBITO",
-        "PA_ENCERR",
-        "PA_PERMAN",
-        "PA_ALTA",
-        "PA_TRANSF",
-        "PA_CIDPRI",
-        "PA_IDADE",
-        "PA_QTDPRO",
-    ];
-    let mut database = interpret_file(decompress(&download_files(vec!["01".to_string()])[0]));
+pub fn get_file(
+    month: String,
+    variables: Vec<String>,
+    temp_path: std::path::PathBuf,
+    output: std::path::PathBuf,
+) {
+    let mut database = interpret_file(temp_path, decompress(&download_file(month.clone())));
 
-    let mut wtr = csv::Writer::from_path("./test_files/test.csv").unwrap();
+    let mut wtr = csv::Writer::from_path(format!("{}{}.csv", output.display(), month))
+        .expect("error on output file");
     csv::Writer::from_writer(std::io::stdout());
 
-    wtr.write_record(variables.clone()).unwrap();
+    wtr.write_record(variables.clone())
+        .expect("error creating header");
 
     for record_result in database.iter_records() {
         // println!("Record {}", i);
-        let record = record_result.unwrap();
+        let record = record_result.expect("error reading result");
         let mut line: Vec<&FieldValue> = vec![];
         for i in variables.clone() {
-            let value = record.get(i).unwrap();
+            let value = record
+                .get(i.as_str())
+                .expect("error getting value from result");
             line.push(value);
         }
 
@@ -46,8 +38,8 @@ pub fn get_files(_years: Vec<u8>, _months: Vec<u8>) {
             dbase::FieldValue::Numeric(Some(x)) => x.to_string(),
             _ => "oops".to_string(),
         }))
-        .unwrap();
+        .expect("error writing record");
     }
 
-    wtr.flush().unwrap();
+    wtr.flush().expect("error flushing to csv");
 }
